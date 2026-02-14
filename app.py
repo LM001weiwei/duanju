@@ -3,6 +3,7 @@ Sora 视频生成 Web 应用
 提供网页界面来生成和管理视频
 """
 import os
+import sys
 import json
 import subprocess
 from pathlib import Path
@@ -58,7 +59,7 @@ def generate_video():
 
         # 调用生成脚本
         cmd = [
-            'python',
+            sys.executable,
             '.claude/skills/gen_sora/scripts/gen_sora.py',
             prompt,
             str(output_path),
@@ -106,7 +107,7 @@ def concat_videos():
 
         # 调用拼接脚本
         cmd = [
-            'python',
+            sys.executable,
             '.claude/skills/concat_videos/scripts/concat_videos.py',
             str(output_path),
             *input_files
