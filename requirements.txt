@@ -2,3 +2,5 @@ openai>=1.0.0
 python-dotenv
 requests
 imageio-ffmpeg>=0.6.0
+flask>=2.0.0
+pillow>=9.0.0

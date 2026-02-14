@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sora 视频生成器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .card h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        input[type="text"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus,
+        select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .row {
+            display: flex;
+            gap: 20px;
+        }
+
+        .col {
+            flex: 1;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            padding: 10px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.loading {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .video-list {
+            margin-top: 20px;
+        }
+
+        .video-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+
+        .video-info {
+            flex: 1;
+        }
+
+        .video-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .video-meta {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .video-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-small {
+            padding: 6px 15px;
+            font-size: 14px;
+        }
+
+        .config-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .status-dot.online {
+            background: #28a745;
+        }
+
+        .status-dot.offline {
+            background: #dc3545;
+        }
+
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎬 Sora 视频生成器</h1>
+
+        <!-- 配置状态 -->
+        <div class="card">
+            <div class="config-status" id="configStatus">
+                <div class="status-dot offline"></div>
+                <span>正在检查配置...</span>
+            </div>
+        </div>
+
+        <!-- 视频生成表单 -->
+        <div class="card">
+            <h2>生成新视频</h2>
+            <form id="generateForm">
+                <div class="form-group">
+                    <label for="prompt">视频描述（提示词）</label>
+                    <textarea
+                        id="prompt"
+                        name="prompt"
+                        placeholder="例如：在一个雨夜下班后，一个人被巷子里几乎听不见的"喵"声叫住了脚步；他们带回家一只瑟瑟发抖、冰冷的小猫，通过一系列细心、温柔的照料，帮助它不再害怕——最终得到一声平稳、安详的呼噜声作为回报。"
+                        required
+                    ></textarea>
+                </div>
+
+                <div class="row">
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="seconds">视频时长（秒）</label>
+                            <input type="number" id="seconds" name="seconds" value="8" min="1" max="60">
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="form-group">
+                            <label for="size">分辨率</label>
+                            <select id="size" name="size">
+                                <option value="1280x720">1280x720 (16:9)</option>
+                                <option value="720x1280">720x1280 (9:16 竖屏)</option>
+                                <option value="1080x1080">1080x1080 (1:1 方形)</option>
+                                <option value="1920x1080">1920x1080 (Full HD)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" id="generateBtn">
+                    <span id="generateBtnText">生成视频</span>
+                </button>
+
+                <div class="status" id="generateStatus"></div>
+            </form>
+        </div>
+
+        <!-- 视频列表 -->
+        <div class="card">
+            <h2>已生成的视频</h2>
+            <button onclick="loadVideos()" class="btn-small">刷新列表</button>
+            <div class="video-list" id="videoList">
+                <p style="color: #666;">加载中...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 检查配置状态
+        async function checkConfig() {
+            try {
+                const response = await fetch('/api/config');
+                const config = await response.json();
+
+                const statusEl = document.getElementById('configStatus');
+                const dot = statusEl.querySelector('.status-dot');
+                const text = statusEl.querySelector('span');
+
+                if (config.has_api_key) {
+                    dot.className = 'status-dot online';
+                    text.textContent = `配置正常 - 模型: ${config.model}`;
+                } else {
+                    dot.className = 'status-dot offline';
+                    text.textContent = '未配置 API Key，请检查 .env 文件';
+                }
+            } catch (error) {
+                console.error('检查配置失败:', error);
+            }
+        }
+
+        // 生成视频
+        document.getElementById('generateForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const btn = document.getElementById('generateBtn');
+            const btnText = document.getElementById('generateBtnText');
+            const status = document.getElementById('generateStatus');
+
+            const formData = {
+                prompt: document.getElementById('prompt').value,
+                seconds: parseInt(document.getElementById('seconds').value),
+                size: document.getElementById('size').value
+            };
+
+            // 显示加载状态
+            btn.disabled = true;
+            btnText.innerHTML = '<span class="loading-spinner"></span> 生成中...';
+            status.className = 'status loading';
+            status.style.display = 'block';
+            status.textContent = '正在生成视频，请耐心等待...';
+
+            try {
+                const response = await fetch('/api/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    status.className = 'status success';
+                    status.textContent = result.message;
+                    document.getElementById('prompt').value = '';
+                    loadVideos();
+                } else {
+                    status.className = 'status error';
+                    status.textContent = '错误: ' + (result.error || '未知错误');
+                    if (result.details) {
+                        status.textContent += '\n详情: ' + result.details;
+                    }
+                }
+            } catch (error) {
+                status.className = 'status error';
+                status.textContent = '网络错误: ' + error.message;
+            } finally {
+                btn.disabled = false;
+                btnText.textContent = '生成视频';
+            }
+        });
+
+        // 加载视频列表
+        async function loadVideos() {
+            const listEl = document.getElementById('videoList');
+            listEl.innerHTML = '<p style="color: #666;">加载中...</p>';
+
+            try {
+                const response = await fetch('/api/videos');
+                const data = await response.json();
+
+                if (data.videos.length === 0) {
+                    listEl.innerHTML = '<p style="color: #666;">暂无视频</p>';
+                    return;
+                }
+
+                listEl.innerHTML = data.videos.map(video => `
+                    <div class="video-item">
+                        <div class="video-info">
+                            <div class="video-name">${video.name}</div>
+                            <div class="video-meta">
+                                大小: ${(video.size / 1024 / 1024).toFixed(2)} MB |
+                                创建时间: ${video.created}
+                            </div>
+                        </div>
+                        <div class="video-actions">
+                            <button class="btn-small" onclick="downloadVideo('${video.path}')">
+                                下载
+                            </button>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                listEl.innerHTML = '<p style="color: #dc3545;">加载失败: ' + error.message + '</p>';
+            }
+        }
+
+        // 下载视频
+        function downloadVideo(path) {
+            window.location.href = `/api/download/${path}`;
+        }
+
+        // 页面加载时执行
+        window.addEventListener('load', () => {
+            checkConfig();
+            loadVideos();
+        });
+    </script>
+</body>
+</html>

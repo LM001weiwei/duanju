@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Bash(git clone:*)",
-      "Bash(git config:*)"
+      "Bash(git config:*)",
+      "Bash(.venv/Scripts/python:*)"
     ]
   }
 }
