@@ -1,0 +1,1 @@
+All custom agents are defined in the .github/agents directory, in markdown format.

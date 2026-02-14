@@ -1,0 +1,4 @@
+openai>=1.0.0
+python-dotenv
+requests
+imageio-ffmpeg>=0.6.0

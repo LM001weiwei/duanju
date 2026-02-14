@@ -1,0 +1,26 @@
+# Python cache and build artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Environments
+.venv/
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Outputs and media
+out/
+*.mp4
+*.png
+*.jpg
+*.jpeg
+*.gif
+
+# Local tooling
+*.log
+
+Outputs/
